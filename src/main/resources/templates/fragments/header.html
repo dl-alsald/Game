@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+
+<div th:fragment="header">
+
+    <!-- Page Preloder -->
+    <div id="preloder">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Header Section Begin -->
+    <header class="header">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-2">
+                    <div class="header__logo">
+                        <a href="/">
+                            <img src="/img/logo.png" alt="">
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="header__nav">
+                        <nav class="header__menu mobile-menu">
+                            <ul>
+                                <li class="active"><a href="/">Home</a></li>
+                                <!-- EVERYONE(GUEST, USER, ADMIN) -->
+                                <li>
+                                    <a class="nav-link" href="/review/list">자유게시판</a>
+                                </li>
+                                <!-- ONLY USER  -->
+                                <li sec:authorize="isAuthenticated() and !hasAuthority('ROLE_ADMIN')">
+                                    <a class="nav-link" href="/cart">장바구니</a>
+                                </li>
+                                <li sec:authorize="isAuthenticated() and !hasAuthority('ROLE_ADMIN')">
+                                    <a class="nav-link" href="/orders">구매이력</a>
+                                </li>
+                                <li sec:authorize="isAuthenticated() and !hasAuthority('ROLE_ADMIN')">
+                                    <a href="members/loginInfo" class="nav-link" aria-haspopup="true" role="button"
+                                       tabindex="0">
+                                        <span class="icon_profile"></span>
+                                        <span class="slicknav_menutxt">My Page</span>
+                                    </a>
+                                </li>
+                                <!-- ONLY ADMIN -->
+                                <li sec:authorize="hasAnyAuthority('ROLE_ADMIN')">
+                                    <a href="#">관리자 페이지 <span class="arrow_carrot-down"></span></a>
+                                    <ul class="dropdown">
+                                        <li sec:authorize="hasAnyAuthority('ROLE_ADMIN')">
+                                            <a class="nav-link" href="/admin/item/new">상품 등록</a></li>
+                                        <li sec:authorize="hasAnyAuthority('ROLE_ADMIN')">
+                                            <a class="nav-link" href="/admin/items">상품 관리</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                <div class="col-lg-2">
+                    <div class="header__right">
+                        <!-- 로그인 되지 않았을 때만 로그인 아이콘 표시 -->
+                        <a class="nav-link" th:href="@{/members/login}"
+                           sec:authorize="!isAuthenticated()">
+                            <span class="icon_profile"></span></a>
+                        <!-- 로그인 되었을 때만 로그아웃 링크 표시 -->
+                        <div class="slicknav_btn_wrapper" sec:authorize="isAuthenticated()">
+                            <a class="nav-link" th:href="@{/members/logout}">
+                                <span class="slicknav_icon"></span>
+                                <span class="slicknav_menutxt">Logout</span>
+                            </a>
+                        </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <form class="form-inline my-2 my-lg-0" th:if="${#httpServletRequest.getRequestURI() == '/'}" th:action="@{/}" method="get">
+                <!-- 메인화면일 때만 검색폼 적용됨 -->
+                <input name="searchQuery" class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+                <button class="site-btn" type="submit">Search</button>
+            </form>
+        </div>
+    </header>
+
+    <!-- Header End -->
+
+</div>
+
+</html>

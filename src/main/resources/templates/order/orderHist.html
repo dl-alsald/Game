@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout1}">
+
+<head>
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}"/>
+
+    <!-- 사용자 스크립트 추가 -->
+    <script th:inline="javascript">
+        function cancelOrder(orderId) {
+            var token = $("meta[name='_csrf']").attr("content");
+            var header = $("meta[name='_csrf_header']").attr("content");
+
+            var url = "/order/" + orderId + "/cancel";
+            var paramData = {
+                orderId: orderId,
+            };
+
+            var param = JSON.stringify(paramData);
+
+            $.ajax({
+                url: url,
+                type: "POST",
+                contentType: "application/json",
+                data: param,
+                beforeSend: function (xhr) {
+                    /* 데이터를 전송하기 전에 헤더에 csrf값을 설정 */
+                    xhr.setRequestHeader(header, token);
+                },
+                dataType: "json",
+                cache: false,
+                success: function (result, status) {
+                    alert("주문이 취소 되었습니다.");
+                    location.href = '/orders/' + [[${page}]];
+                },
+                error: function (jqXHR, status, error) {
+                    if (jqXHR.status == '401') {
+                        alert('로그인 후 이용해주세요');
+                        location.href = '/members/login';
+                    } else {
+                        alert(jqXHR.responseText);
+                    }
+                }
+            });
+        }
+    </script>
+
+</head>
+
+<div layout:fragment="content">
+
+    <!-- Breadcrumb Begin -->
+    <div class="breadcrumb-option">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="breadcrumb__links">
+                        <a href="/"><i class="fa fa-home"></i> Home</a>
+                        <span>구매 내역</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Breadcrumb End -->
+
+    <!-- Blog Details Section Begin --> <!-- 구매내역 출력, 구매 취소 -->
+    <section class="blog-details spad">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="product__page__content">
+                        <div class="product__page__title">
+                            <div class="row">
+                                <div class="col-lg-10 col-md-8 col-sm-6">
+                                    <div class="section-title">
+                                        <h4>구매 내역</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:each="order : ${orders.getContent()}">
+            <div th:each="orderItem : ${order.orderItemDtoList}" class="d-flex mb-3">
+                <div class="container">
+                    <br>
+                    <br>
+                    <div class="row d-flex justify-content-center">
+                        <div class="col-lg-8">
+                            <div class="blog__details__title">
+                                <h6 th:text="'Order Date : ' + ${order.orderDate}"></h6>
+                                <h2 th:text="${orderItem.itemNm}"></h2>
+                            </div>
+                        </div>
+                        <div class="blog__details__tags"
+                             th:if="${order.orderStatus == T(com.no3.game.constant.OrderStatus).ORDER}">
+                            <a href="#" class="blog__details__tags" th:attr="data-orderid=${order.orderId}"
+                               onclick="cancelOrder(this.getAttribute('data-orderid'))">Cancel Order</a>
+                        </div>
+                        <div class="blog__details__tags"
+                             th:unless="${order.orderStatus == T(com.no3.game.constant.OrderStatus).ORDER}">
+                            <a href="#">(Cancel complete)</a>
+                        </div>
+                        <div class="col-lg-8">
+                            <div class="blog__details__pic">
+                                <img th:src="${orderItem.imgUrl}" width=50px>
+                            </div>
+                        </div>
+                        <div class="col-lg-6" style="height:200px">
+                            <div class="blog__details__content">
+                                <div class="blog__details__item__text">
+                                    <h4 data-th-text="|￦ ${#numbers.formatInteger(orderItem.orderPrice, 3, 'COMMA')}  |"></h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container"> <!-- 페이징 처리 -->
+            <div class="row">
+                <div class="col-lg-6"
+                     th:with="start=${(orders.number/maxPage)*maxPage + 1}, end=(${(orders.totalPages == 0) ? 1 : (start + (maxPage - 1) < orders.totalPages ? start + (maxPage - 1) : orders.totalPages)})">
+                    <div class="product__pagination" th:each="page: ${#numbers.sequence(start, end)}"
+                         th:classappend="${orders.number eq page-1}?'active':''">
+                        <a th:href="@{'/members/loginInfo/' + ${page-1}}" th:inline="text">[[${page}]]</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Blog Details Section End -->
+
+</div>
+
+</html>
